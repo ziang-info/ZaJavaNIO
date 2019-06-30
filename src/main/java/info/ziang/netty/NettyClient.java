@@ -1,9 +1,7 @@
 package info.ziang.netty;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringEncoder;
@@ -42,7 +40,14 @@ public class NettyClient {
                     @Override
                     protected void initChannel(Channel ch) {
                         ch.pipeline().addLast(new StringEncoder());
-                        ch.pipeline().addLast(new ZaTimeClientHandler());
+                        ch.pipeline().addLast(new ZaClientHandler());
+
+                        ch.pipeline().addLast(new SimpleChannelInboundHandler<String>() {
+                            @Override
+                            protected void channelRead0(ChannelHandlerContext ctx, String msg) {
+                                System.out.println(msg);
+                            }
+                        });
                     }
                 });
 
@@ -59,7 +64,7 @@ public class NettyClient {
 
             String clientId = Thread.currentThread().getName();
             while (true) {
-                String msg = new Date() + ": hello world! from " + clientId;
+                String msg = new Date() + ": hello from " + clientId;
                 channel.writeAndFlush(msg);
                 System.out.println(msg);
                 Thread.sleep(2000);

@@ -49,7 +49,7 @@ public class NettyServer {
                                 System.out.println(msg);
                             }
                         });
-                        ch.pipeline().addLast(new ZaTimeServerHandler());
+                        ch.pipeline().addLast(new ZaServerHandler());
                     }
                 });
 

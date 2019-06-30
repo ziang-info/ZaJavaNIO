@@ -11,8 +11,8 @@ import java.util.logging.Logger;
  * Created by Administrator on 2017/5/17.
  * 用于对网络事件进行读写操作
  */
-public class ZaTimeClientHandler extends ChannelInboundHandlerAdapter {
-    private static final Logger logger = Logger.getLogger(ZaTimeClientHandler.class.getName());
+public class ZaClientHandler extends ChannelInboundHandlerAdapter {
+    private static final Logger logger = Logger.getLogger(ZaClientHandler.class.getName());
 
     /**
      * 当客户端和服务端 TCP 链路建立成功之后，Netty 的 NIO 线程会调用 channelActive 方法
@@ -28,6 +28,11 @@ public class ZaTimeClientHandler extends ChannelInboundHandlerAdapter {
          */
         reqByteBuf.writeBytes(reqMsgByte);
         ctx.writeAndFlush(reqByteBuf);
+
+        /**
+        需要在channelActive中添加这行语句才会调用channelRead方法
+         */
+        ctx.channel().read();
     }
 
     /**
