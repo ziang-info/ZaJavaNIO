@@ -8,6 +8,7 @@
 
     <name>ZaJavaNIO</name>
     <url>http://www.ziang.info</url>
+    <packaging>jar</packaging>
 
     <properties>
         
