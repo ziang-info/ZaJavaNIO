@@ -11,16 +11,28 @@
     <packaging>jar</packaging>
 
     <properties>
-        
+
     </properties>
 
-    <dependencies>  
+    <dependencies>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.6.Final</version>
+        </dependency>
+
+        <!--dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
+            <version>4.1.33.Final</version>
+        </dependency-->
 
     </dependencies>
 
     <dependencyManagement>
         <dependencies>
-            
+
         </dependencies>
     </dependencyManagement>
 
