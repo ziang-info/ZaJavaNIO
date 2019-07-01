@@ -1,12 +1,15 @@
 package info.ziang.netty;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
 public class NettyClient {
@@ -19,11 +22,17 @@ public class NettyClient {
     public static void main(String[] args) throws InterruptedException {
 
         for (int i = 0; i < 3; i++) {
-            new Thread(() -> runClient()).start();
+            new Thread(() -> {
+                try {
+                    runClient();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }).start();
         }
     }
 
-    private static void runClient() {
+    private static void runClient() throws UnsupportedEncodingException {
 
         /**Bootstrap 与 ServerBootstrap 都继承(extends)于 AbstractBootstrap
          * 创建客户端辅助启动类,并对其配置,与服务器稍微不同，这里的 Channel 设置为 NioSocketChannel
@@ -44,7 +53,11 @@ public class NettyClient {
                         /**
                          * 添加 LineBasedFrameDecoder、StringDecoder 解码器
                          */
-                        ch.pipeline().addLast(new LineBasedFrameDecoder(1024));
+                        //ch.pipeline().addLast(new LineBasedFrameDecoder(1024));
+
+                        ByteBuf delimiter = Unpooled.copiedBuffer("$_".getBytes());
+                        ch.pipeline().addLast(new DelimiterBasedFrameDecoder(1024, delimiter));
+
                         ch.pipeline().addLast(new StringEncoder());
 
                         ch.pipeline().addLast(new SimpleChannelInboundHandler<String>() {
@@ -62,22 +75,31 @@ public class NettyClient {
         try {
             /**connect：发起异步连接操作，调用同步方法 sync 等待连接成功*/
             ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 8000);
-            Channel channel=channelFuture.channel();
+            Channel channel = channelFuture.channel();
             //ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 8000).sync();
 
             System.out.println(Thread.currentThread().getName() + ",客户端发起异步连接..........");
 
-            /**等待客户端链路关闭*/
-            //channelFuture.channel().closeFuture().sync();
-            channelFuture.channel().closeFuture().sync();
-
             String clientId = Thread.currentThread().getName();
-            while (true) {
-                String msg = new Date() + ": hello from " + clientId;
-                channel.writeAndFlush(msg);
+            int num = 10;
+            while (num-- > 0) {
+                String msg = new Date() + ": hello from " + clientId
+
+                        /** DelimiterBasedFrameDecoder 解码器自定义的分隔符是 "$_"，所以发送消息时要在结尾处加上*/
+                        + "$_";
+
+                byte[] reqMsgByte = msg.getBytes("UTF-8");
+                ByteBuf reqByteBuf = Unpooled.buffer(reqMsgByte.length);
+                reqByteBuf.writeBytes(reqMsgByte);
+
+                channel.writeAndFlush(reqByteBuf);
                 System.out.println(msg);
                 Thread.sleep(2000);
             }
+
+            /**等待客户端链路关闭*/
+            //channelFuture.channel().closeFuture().sync();
+            channelFuture.channel().closeFuture().sync();
 
         } catch (InterruptedException e) {
             e.printStackTrace();

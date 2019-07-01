@@ -58,9 +58,15 @@ public class ZaClientHandler extends ChannelInboundHandlerAdapter {
              */
             String reqMsg = (i + 1) + ",我是客户端 "
                     + Thread.currentThread().getName()
-                    + System.getProperty("line.separator");
+
+                    //+ System.getProperty("line.separator");
+
+                    /** DelimiterBasedFrameDecoder 解码器自定义的分隔符是 "$_"，所以发送消息时要在结尾处加上*/
+                    + "$_";
+
             byte[] reqMsgByte = reqMsg.getBytes("UTF-8");
             ByteBuf reqByteBuf = Unpooled.buffer(reqMsgByte.length);
+
             /**
              * writeBytes：将指定的源数组的数据传输到缓冲区
              * 调用 ChannelHandlerContext 的 writeAndFlush 方法将消息发送给服务器

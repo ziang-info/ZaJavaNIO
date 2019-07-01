@@ -101,7 +101,15 @@ public class ZaServerHandler extends ChannelInboundHandlerAdapter {
          * */
         String respMsg = "I am Server，消息接收 success!"
                 + Thread.currentThread().getName()
-                + System.getProperty("line.separator");
+                //+ System.getProperty("line.separator");
+                /**回复消息
+                 * 由于创建的 DelimiterBasedFrameDecoder 解码器默认会自动去掉分隔符，所以返回给客户端时需要自己拼接分隔符
+                 * DelimiterBasedFrameDecoder(int maxFrameLength, boolean stripDelimiter, ByteBuf delimiter)
+                 *  这个构造器可以设置是否去除分隔符
+                 * 最后创建 ByteBuf 将原始的消息重新返回给客户端
+                 * */
+                + "$_";
+
         ByteBuf respByteBuf = Unpooled.copiedBuffer(respMsg.getBytes());
         /**
          * 每次写的时候，同时刷新，防止 TCP 粘包

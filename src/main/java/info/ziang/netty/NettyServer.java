@@ -1,12 +1,17 @@
 package info.ziang.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -44,13 +49,28 @@ public class NettyServer {
                  Java将使用默认值50。
                  */
                 .option(ChannelOption.SO_BACKLOG, 1024)
+                .handler(new LoggingHandler(LogLevel.INFO))
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     protected void initChannel(NioSocketChannel ch) {
 
                         /**
                          * 添加 LineBasedFrameDecoder 与 StringDecoder解码器
                          */
-                        ch.pipeline().addLast(new LineBasedFrameDecoder(1024));
+                        //ch.pipeline().addLast(new LineBasedFrameDecoder(1024));
+
+                        /**
+                         * 创建分隔符缓冲对象 ByteBuf，使用自定义的 "$_" 作为消息结束符，自己也可以定义为其它的字符作为结束符
+                         *
+                         * DelimiterBasedFrameDecoder(int maxFrameLength, ByteBuf delimiter)
+                         * DelimiterBasedFrameDecoder(int maxFrameLength, ByteBuf... delimiters)
+                         * 分隔符解码器重载了好几个构造器方法，其中常用的就是上面这两个
+                         *      maxFrameLength：单条消息的最大长度,当达到该长度后仍然没有查找到分隔符时，则抛出 TooLongFrameException 异常
+                         *      防止由于异常码流缺失分隔符导致内存溢出（亲测 Netty 4.1 版本，服务器并未抛出异常，而是客户端被强制断开连接了）
+                         *      delimiter：分隔符缓冲对象,第二个构造器可见可以指定多个结束符
+                         */
+                        ByteBuf delimiter = Unpooled.copiedBuffer("$_".getBytes());
+                        ch.pipeline().addLast(new DelimiterBasedFrameDecoder(1024, delimiter));
+
 
                         ch.pipeline().addLast(new StringDecoder());
 
