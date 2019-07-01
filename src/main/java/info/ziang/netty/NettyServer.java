@@ -54,6 +54,13 @@ public class NettyServer {
                     protected void initChannel(NioSocketChannel ch) {
 
                         /**
+                         * FixedLengthFrameDecoder(int frameLength)： frameLength：指定单条消息的长度
+                         * 为了测试结果明显，这里设置消息长度为 64 字节，之后在发送消息时，会让部分消息长度小于等于 64，然后部分消息长度大于 64，以观察区别
+                         * 实际应用中应该根据时间情况进行设置，比如 1024 字节
+                         */
+                        //ch.pipeline().addLast(new FixedLengthFrameDecoder(64));
+
+                        /**
                          * 添加 LineBasedFrameDecoder 与 StringDecoder解码器
                          */
                         //ch.pipeline().addLast(new LineBasedFrameDecoder(1024));
