@@ -4,6 +4,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
 import java.util.Date;
@@ -39,8 +40,12 @@ public class NettyClient {
                 .handler(new ChannelInitializer<Channel>() {
                     @Override
                     protected void initChannel(Channel ch) {
+
+                        /**
+                         * 添加 LineBasedFrameDecoder、StringDecoder 解码器
+                         */
+                        ch.pipeline().addLast(new LineBasedFrameDecoder(1024));
                         ch.pipeline().addLast(new StringEncoder());
-                        ch.pipeline().addLast(new ZaClientHandler());
 
                         ch.pipeline().addLast(new SimpleChannelInboundHandler<String>() {
                             @Override
@@ -48,19 +53,23 @@ public class NettyClient {
                                 System.out.println(msg);
                             }
                         });
+
+                        ch.pipeline().addLast(new ZaClientHandler());
                     }
                 });
 
 
         try {
             /**connect：发起异步连接操作，调用同步方法 sync 等待连接成功*/
-            Channel channel = bootstrap.connect("127.0.0.1", 8000).channel();
+            ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 8000);
+            Channel channel=channelFuture.channel();
             //ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 8000).sync();
 
             System.out.println(Thread.currentThread().getName() + ",客户端发起异步连接..........");
 
             /**等待客户端链路关闭*/
             //channelFuture.channel().closeFuture().sync();
+            channelFuture.channel().closeFuture().sync();
 
             String clientId = Thread.currentThread().getName();
             while (true) {
@@ -69,6 +78,7 @@ public class NettyClient {
                 System.out.println(msg);
                 Thread.sleep(2000);
             }
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {

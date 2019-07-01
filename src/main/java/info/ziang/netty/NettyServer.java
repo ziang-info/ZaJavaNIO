@@ -5,12 +5,16 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Refer to https://www.jianshu.com/p/a4e03835921a
  */
 public class NettyServer {
+
     public static void main(String[] args) {
 
         /**
@@ -42,7 +46,14 @@ public class NettyServer {
                 .option(ChannelOption.SO_BACKLOG, 1024)
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     protected void initChannel(NioSocketChannel ch) {
+
+                        /**
+                         * 添加 LineBasedFrameDecoder 与 StringDecoder解码器
+                         */
+                        ch.pipeline().addLast(new LineBasedFrameDecoder(1024));
+
                         ch.pipeline().addLast(new StringDecoder());
+
                         ch.pipeline().addLast(new SimpleChannelInboundHandler<String>() {
                             @Override
                             protected void channelRead0(ChannelHandlerContext ctx, String msg) {
